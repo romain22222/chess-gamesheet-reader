@@ -25,16 +25,16 @@ def split(image: Image):
 	allHeights = []
 	for line in lines:
 		rho, theta = line[0]
-		a = np.cos(theta)
+		# a = np.cos(theta)
 		b = np.sin(theta)
-		x0 = a * rho
+		# x0 = a * rho
 		y0 = b * rho
-		x1 = int(x0 + 1000 * (-b))
-		y1 = int(y0 + 1000 * a)
-		x2 = int(x0 - 1000 * (-b))
-		y2 = int(y0 - 1000 * a)
+		# x1 = int(x0 + 1000 * (-b))
+		# y1 = int(y0 + 1000 * a)
+		# x2 = int(x0 - 1000 * (-b))
+		# y2 = int(y0 - 1000 * a)
 		if not any([abs(y0 - y) < 20 for y in meanHeights]):
-			cv2.line(imbytes, (x1, y1), (x2, y2), (0, 0, 255), 2)
+			# cv2.line(imbytes, (x1, y1), (x2, y2), (0, 0, 255), 2)
 			meanHeights.append(y0)
 		allHeights.append(y0)
 	# Save the imbytes in tmp/image1_scanned_splitted.png
