@@ -1,6 +1,7 @@
 import itertools
 
 import numpy as np
+from PIL import Image
 
 import characterPredicter.predicter
 from chessChecker import checker
@@ -63,7 +64,7 @@ def imageToPGN(image):
 
 if __name__ == '__main__':
 	checker.init(checker.ChessLanguage.SAN_FRENCH)
-	predictions = characterPredicter.predicter.predictTop5(open("curated/100/6567.png", "rb").read())
+	predictions = characterPredicter.predicter.predictTop5(Image.open("curated/100/6567.png"))
 	print(predictions)
 
 # TODO
