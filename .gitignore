@@ -2,3 +2,4 @@ venv
 .idea
 curated/*/
 testSheets/*
+tmp/*

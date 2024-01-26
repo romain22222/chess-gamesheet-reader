@@ -82,3 +82,4 @@ def getPGN():
 	Returns the PGN string of the current board
 	"""
 	return chess.pgn.Game.from_board(CURRENT_BOARD).accept(chess.pgn.StringExporter())
+
