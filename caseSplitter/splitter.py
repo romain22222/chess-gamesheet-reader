@@ -40,7 +40,7 @@ def split(image: Image):
 	# Save the imbytes in tmp/image1_scanned_splitted.png
 	Image.fromarray(cv2.cvtColor(imbytes, cv2.COLOR_BGR2RGB)).save("tmp/image1_scanned_splitted.png")
 	meanHeights.sort()
-	print(meanHeights)
+	# print(meanHeights)
 	medianDiff = np.median([meanHeights[i+1] - meanHeights[i] for i in range(len(meanHeights) - 1)])
 	top = meanHeights[0]
 	# You must have 40 cropped images
@@ -49,7 +49,7 @@ def split(image: Image):
 	unavailableLines = []
 	chosenLines = [top]
 	allHeights.sort()
-	print(medianDiff)
+	# print(medianDiff)
 	skipped = 0
 	for i in range(1, 42):
 		availableLines = [line for line in allHeights if abs(line - chosenLines[-1] - medianDiff * (skipped+1)) < medianDiff/2]
@@ -60,8 +60,8 @@ def split(image: Image):
 			continue
 		skipped = 0
 		chosenLines.append(availableLines[0])
-	print(unavailableLines)
-	print(medianDiff)
+	# print(unavailableLines)
+	# print(medianDiff)
 	# Get ranges of unavailable lines (ie if i have 2,3,4,6, then i have 2-4 and 6)
 	unavailableLines = [list(g) for _, g in groupby(unavailableLines, lambda n, c=count(): n-next(c))]
 	for r in unavailableLines:
@@ -71,7 +71,7 @@ def split(image: Image):
 		print(f"Adding {diffToAdd} between {r[0]} and {r[-1]}")
 		for i in range(r[0], r[-1] + 1):
 			chosenLines.insert(i, bottom + diffToAdd * (i - r[0] + 1))
-	print(chosenLines)
+	# print(chosenLines)
 	croppedImagesLines = []
 	for i in range(len(chosenLines) - 1):
 		croppedImagesLines.append(imbytes[int(chosenLines[i]-5):int(chosenLines[i+1]+10), :])

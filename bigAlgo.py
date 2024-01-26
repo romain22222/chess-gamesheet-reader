@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 
 import caseSplitter.splitter
+import characterExtracter.extracter
 import characterPredicter.predicter
 from chessChecker import checker
 from scanner.scan import scan
@@ -26,29 +27,28 @@ def getMoveFromUser(availableMoves=None):
 		prompt = "Invalid move. Please enter a valid move"
 
 
-def imageToPGN(image):
+def imageToPGN(startingImage: Image.Image):
 	"""
 	Converts an image to a PGN string
 	"""
-	# DONE ------------------------ Step 1: Scan the image and get the cropped game sheet
-	imageScanned = scan(image)
+	# Step 1: Scan the image and get the cropped game sheet
+	imageScanned = scan(startingImage)
 	# Step 2: Cut the image's move cases
-	moveCases = []
+	moveCases = caseSplitter.splitter.split(imageScanned)
 	result = None
 	# For each move case:
 	for moveCase in moveCases:
 		# Step 3: Slice each move case character by character
-		chars = []
+		chars = characterExtracter.extracter.extract_characters(moveCase)
 		# Step 4: Predict each character with the model
 		# Each character is an image that needs to be resized to 64x64. The model will predict the 5 most likely characters
 		predictions = []
 		for char in chars:
-			...
+			predictions.append(characterPredicter.predicter.predictTop5(char.resize((64, 64))))
 		# predictions of form [[(char, proba), ...], ...]
-		# DONE ---------------------- Create the "moves" list sorted by the most likely combination of characters
+		# Create the "moves" list sorted by the most likely combination of characters
 		moves = []
-		for comb in itertools.filterfalse(lambda x: not checker.validMove("".join([value[0] for value in x])),
-										  itertools.product(predictions, repeat=len(chars))):
+		for comb in itertools.filterfalse(lambda x: not checker.validMove("".join([value[0] for value in x])), itertools.product(predictions, repeat=len(chars))):
 			moves.append("".join([value[0] for value in comb]), np.prod([value[1] for value in comb]))
 
 		# DONE ----------------------- Step 5: Get the most likely move based on the predictions
@@ -79,14 +79,9 @@ def imageToPGN(image):
 
 if __name__ == '__main__':
 	checker.init(checker.ChessLanguage.SAN_FRENCH)
-	image = Image.open("tmp/image1_scanned.jpg")
-	splitted = caseSplitter.splitter.split(image)
-	for i in range(len(splitted)):
-		splitted[i].save(f"tmp/cropping/image1_scanned_cropped_{i}.jpg")
-	# save the scanned image
+	image = Image.open("testSheets/image2.jpg")
 
 # TODO
 """
-Cut the image's move cases
 Slice each move case character by character
 """
