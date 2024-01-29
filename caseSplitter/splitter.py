@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 
-def split(image: Image):
+def split(image: Image.Image):
 	imbytes = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
 	# Convert the image to grayscale
@@ -16,8 +16,6 @@ def split(image: Image):
 
 	# Perform edge detection using Canny
 	edges = cv2.Canny(blurred, 50, 150)
-
-	Image.fromarray(edges).save("tmp/edges.png")
 
 	# Detect horizontal lines
 	lines = cv2.HoughLines(edges, 1, np.pi/180, 210, min_theta=np.pi/2-0.05, max_theta=np.pi/2+0.05)
@@ -38,7 +36,6 @@ def split(image: Image):
 			meanHeights.append(y0)
 		allHeights.append(y0)
 	# Save the imbytes in tmp/image1_scanned_splitted.png
-	Image.fromarray(cv2.cvtColor(imbytes, cv2.COLOR_BGR2RGB)).save("tmp/image1_scanned_splitted.png")
 	meanHeights.sort()
 	# print(meanHeights)
 	medianDiff = np.median([meanHeights[i+1] - meanHeights[i] for i in range(len(meanHeights) - 1)])
@@ -53,7 +50,7 @@ def split(image: Image):
 	skipped = 0
 	for i in range(1, 42):
 		availableLines = [line for line in allHeights if abs(line - chosenLines[-1] - medianDiff * (skipped+1)) < medianDiff/2]
-		print(f"Found {len(availableLines)} lines: {availableLines}")
+		# print(f"Found {len(availableLines)} lines: {availableLines}")
 		if len(availableLines) == 0:
 			unavailableLines.append(i)
 			skipped += 1
@@ -68,7 +65,7 @@ def split(image: Image):
 		bottom = chosenLines[r[0]-1]
 		top = chosenLines[r[0]] if r[0] < len(chosenLines) else chosenLines[r[0]-1] + medianDiff
 		diffToAdd = (top - bottom) / (len(r) + 1)
-		print(f"Adding {diffToAdd} between {r[0]} and {r[-1]}")
+		# print(f"Adding {diffToAdd} between {r[0]} and {r[-1]}")
 		for i in range(r[0], r[-1] + 1):
 			chosenLines.insert(i, bottom + diffToAdd * (i - r[0] + 1))
 	# print(chosenLines)

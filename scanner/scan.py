@@ -2,15 +2,16 @@ import cv2
 from imutils import perspective, resize, grab_contours
 import numpy as np
 from rembg.bg import remove as rembg
+from PIL import Image
 
 APPROX_POLY_DP_ACCURACY_RATIO = 0.02
 IMG_RESIZE_H = 500.0
 
 
-def scan(data):
-	imbytes = np.frombuffer(rembg(data), np.uint8)
-
-	img = cv2.imdecode(imbytes, cv2.IMREAD_UNCHANGED)
+def scan(data: Image.Image) -> Image.Image:
+	# add transparency channel
+	data = data.convert("RGBA")
+	img = cv2.cvtColor(np.array(rembg(data)), cv2.COLOR_RGBA2BGRA)
 	orig = img.copy()
 
 	ratio = img.shape[0] / IMG_RESIZE_H
@@ -36,6 +37,6 @@ def scan(data):
 		r = orig
 	else:
 		r = perspective.four_point_transform(orig, outline * ratio)
+	img = Image.fromarray(cv2.cvtColor(r, cv2.COLOR_BGRA2RGBA))
+	return img
 
-	_, buf = cv2.imencode(".png", r)
-	return buf.tobytes()
