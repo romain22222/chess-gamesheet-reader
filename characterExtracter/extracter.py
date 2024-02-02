@@ -1,9 +1,17 @@
+import os
+import shutil
+
 import numpy as np
 from PIL import Image
 import cv2
 
+rightParams = [
+	(47, 5),
+	(31, 5)
+]
 
-def extract_characters(image: Image.Image):
+
+def extract_characters(image: Image.Image, index: int):
 	imbytes = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
 	# Convert the image to grayscale
@@ -12,11 +20,24 @@ def extract_characters(image: Image.Image):
 	# # Save the grayscale image
 	# cv2.imwrite("tmp/gray.png", gray)
 
-	# Apply thresholding to get a binary image
-	thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 251, 2)
-	retT = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 251, 2)
+	if not os.path.exists("tmp/charTest"):
+		os.mkdir("tmp/charTest")
+	# Create a small film with the adaptive thresholding while changing the block size
+	# for i in range(41, 151, 2):
+	# 	for j in range(0, 10):
+	# 		tmp = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, i, j)
+	# 		cv2.imwrite(f"tmp/charTest/name_{index}_{i}_{j}.png", tmp)
+	#
+	# toSelectI = input("Select the best i: ")
+	# toSelectJ = input("Select the best j: ")
+	toSelectI, toSelectJ = rightParams[0]
+	shutil.rmtree("tmp/charTest")
+	thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, int(toSelectI), int(toSelectJ))
 
-	# # Save the thresholded image
+	retT = gray
+
+	# Save the thresholded image
+	cv2.imwrite("tmp/return.png", retT)
 	cv2.imwrite("tmp/thresh.png", thresh)
 
 	# Find contours
@@ -30,26 +51,17 @@ def extract_characters(image: Image.Image):
 		# Get the rectangle that contains the contour
 		x, y, w, h = cv2.boundingRect(contour)
 		# Don't plot small false positives that aren't text
-		if (w < 15 and h < 15) or w > 70 or x < 60:
+		if (w < 10 and h < 10) or w > 70 or w < 5:
+			continue
+		# Don't take into account the left most part of the image if index is multiple of 2
+		if index % 2 == 0 and x < 50:
 			continue
 		charBB.append((x, y, w, h))
 
 	charRet = []
-	newBB = []
 	for x, y, w, h in charBB:
-		iToRemove = []
-		# If any box is overlapped in the y direction, merge it with the previous box
-		for i, dims in enumerate(newBB):
-			x2, y2, w2, h2 = dims
-			if y2 + 10 < y + h < y2 + h2 - 10 or y2 + 10 < y < y2 + h2 - 10:
-				iToRemove.append(i)
-				x, y, w, h = min(x, x2), min(y, y2), max(x + w, x2 + w2) - min(x, x2), max(y + h, y2 + h2) - min(y, y2)
-		if len(iToRemove) > 0:
-			# Remove the boxes that were merged
-			for i in sorted(iToRemove, reverse=True):
-				del newBB[i]
-		newBB.append((x, y, w, h))
-	for x, y, w, h in newBB:
-		charRet.append(Image.fromarray(cv2.cvtColor(retT[y:y+h, x:x+w], cv2.COLOR_GRAY2RGB)))
+		charRet.append(cv2.cvtColor(retT[y:y+h, x:x+w], cv2.COLOR_GRAY2RGB))
+	# On each character, do an otsu thresholding and transform it into a PIL image
+	charRet = [Image.fromarray(cv2.cvtColor(cv2.threshold(cv2.cvtColor(c, cv2.COLOR_BGR2GRAY), 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1], cv2.COLOR_GRAY2RGB)) for c in charRet]
 	[c.save(f"tmp/croppedC/char_{i}.png") for i, c in enumerate(charRet)]
 	return charRet
