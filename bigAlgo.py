@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 from PIL import Image
 
@@ -70,7 +72,7 @@ def imageToPGN(startingImagePath: str) -> str:
 				moves.append(
 					(globalMove, np.prod([predictions[j][i // (5 ** j) % 5][1] for j in range(len(predictions))])))
 
-		# DONE ----------------------- Step 5: Get the most likely move based on the predictions
+		# Step 5: Get the most likely move based on the predictions
 		moves.sort(key=lambda x: x[1], reverse=True)
 		if len(moves) == 0:
 			# If no move is likely enough, prompt the user to enter the move
@@ -102,10 +104,9 @@ def imageToPGN(startingImagePath: str) -> str:
 
 
 if __name__ == '__main__':
-	checker.init(checker.ChessLanguage.SAN_FRENCH)
-	print(imageToPGN("testSheets/image3.jpg"))
-
-# TODO
-"""
-Slice each move case character by character
-"""
+	if len(sys.argv) < 3:
+		print("Usage: python3 bigAlgo.py <imagePath> <UCI/SAN/FRA>")
+		exit()
+	languages = {"UCI": checker.ChessLanguage.UCI, "SAN": checker.ChessLanguage.SAN, "FRA": checker.ChessLanguage.SAN_FRENCH}
+	checker.init(languages[sys.argv[2]])
+	print(imageToPGN(sys.argv[1]))
